@@ -1,45 +1,37 @@
+package Tetris;
+
 import java.awt.BorderLayout;
-import javax.swing.JLabel;
+
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 
 public class Tetris extends JFrame {
+	
 	private JLabel menu;
 	
-	public Tetris()
-	{
-		menu = new JLabel("0");
-		add(menu, BorderLayout.SOUTH);
+	public Tetris() {
+		menu = new JLabel("0"); //Numer of lines cleared
+		add(menu,BorderLayout.SOUTH);
 		Board board = new Board(this);
 		add(board);
 		
-		//start lines down
+		//Starting the game...
 		board.start();
 		
-		//add one piece
-		board.newPiece();
-		board.repaint();
-		
 		setSize(200,400);
-		setTitle("Tetris");
+		setTitle("Tetris!");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
-		
-		
 	}
 	
-	
-	public JLabel getMenu()
-	{
-	 return menu;	
+	public JLabel getMenu() {
+		return menu;
 	}
 	
-	public static void main(String [] args)
-	{
+	public static void main(String[] args) {
 		Tetris myTetris = new Tetris();
 		myTetris.setLocationRelativeTo(null);
 		myTetris.setVisible(true);
-		
-		
+		myTetris.setResizable(false);
 	}
-	
-
+	//MOVEMENT ADDED W/O CONTROL 4/17/19 12:28AM
 }
