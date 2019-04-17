@@ -1,117 +1,110 @@
-package Tetris;
+package tetris;
 
-import java.awt.event.ActionListener;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+import javax.swing.JLabel;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.Timer;
+public class Board extends JPanel implements ActionListener  {
 
-import Tetris.Blocks.TetrisShape;
-
-public class Board extends JPanel implements ActionListener {
-	
-	//Defining variables
+	//Given Dimensions & other board stuff
 	private static final int WIDTH_BOARD = 10;
 	private static final int HEIGHT_BOARD = 20;
-	private static final int DELAY = 400;
+	private JLabel menu;
 	
+	//Timer from javax.swing - calls ActionEvents from java.awt.event
 	private Timer timer;
 	
+	//Game States
 	private boolean doneFalling = false;
 	private boolean gameStarted = false;
 	private boolean gamePaused = false;
 	
-	private int linesCleared = 0;
+	private int clearedLines = 0; //0 lines cleared at start. GET GOOD
 	
+	//TODO
 	private int currentX = 0;
 	private int currentY = 0;
 	
-	private JLabel menu;
+	//Interface stuff
+	private JLabel menubar;
 	
-	private Blocks currentBlock; //currentPiece > currentBlock
+	//Shape stuff
+	private Blocks currentBlock;
+	private TetrisShapes[] board; //TODO Chris's Enumerator
 	private static final Color[] COLORS = { new Color(0,0,0), new Color(204,102,102),
 			new Color(102,204,102), new Color(102,102,204), new Color(204,204,102),
-			new Color(204,102,204), new Color(102,204,204), new Color(218,170,0)};
-	private TetrisShape[] board; //Array of Tetris shapes called board
+			new Color(204,102,204), new Color(102,204,204), new Color(218,170,0)}
 	
 	public Board(Tetris parent) {
-		setFocusable(true);
-		currentBlock = new Blocks();
-		timer = new Timer(DELAY,this); //Timer for dropping
-		menu = parent.getMenu();
+		setFocusable(true); //Something from awt
+		currentShape = new Blocks();
+		timer = new Timer(400,this); //Timer from javax.swing Googled how to do this
+		menu = parent.getMenu(); //Since parent (Tetris) extends JFrame
+		board = new TetrisShapes[WIDTH_BOARD * HEIGHT_BOARD]; //TODO
+		clearBoard();
 		
-		board = new TetrisShape[WIDTH_BOARD * HEIGHT_BOARD];
-		//Constructor! Sets the array to the dimensions of the board
-		clearBoard(); // clears all inside
 	}
 	
 	public int squareWidth() {
-		//Dimensions of each little block in a shape
-		return (int) getSize().getWidth() / WIDTH_BOARD; //From awt.dimension
+		return (int) getSize().getWidth() / WIDTH_BOARD;
 	}
 	
 	public int squareHeight() {
-		return (int) getSize().getHeight() / HEIGHT_BOARD; //From awt.dimension
+		return (int) getSize().getWidth() / HEIGHT_BOARD;
 	}
 	
-	public TetrisShape shapeAt(int x, int y) {
-		//Returns a type of shape based on position
+	public TetrisShapes shapePos(int x, int y) {
 		return board[y * WIDTH_BOARD + x];
 	}
 	
 	private void clearBoard() {
 		for (int i = 0; i < HEIGHT_BOARD * WIDTH_BOARD; i++) {
-			board[i] = TetrisShape.N;
+			board[i] = TetrisShapes.Nothing;
 		}
 	}
 	
-	private void pieceDropped() {
-		for (int i = 0; i < 4; i++) {
-			int x = currentX + currentBlock.getX(i);
-			int y = currentY - currentBlock.getY(i);
-			board[y* WIDTH_BOARD + x] = currentBlock.getShape();
-			//This method drops a piece, updates coordinates
-			//AND updates the board array
+	private void dropBlock() {
+		for(int i = 0; i < 4; i++) {
+			int x = currentX + currentBlock.x(i);
+			int y = currentY - currentBlock.y(i);
+			board[y * WIDTH_BOARD + x] = currentBlock.getShape(); //getShape from Shapes
+			
 		}
 		
-		clearLine(); //Check for full lines and remove them if needed
+		clearFullLine();
 		
-		if (!doneFalling) {
+		if (doneFalling == false) {
 			newBlock();
 		}
 	}
 	
-	//newPiece > newBlock
 	public void newBlock() {
 		currentBlock.setRandomShape();
-		currentX = WIDTH_BOARD /2 + 1;
-		//CurrentY depends on dimension of the new block
-		//Offsent differently depending on the shape
-		currentY = HEIGHT_BOARD - 1 + currentBlock.minY(); 
+		currentX = WIDTH_BOARD / 2 + 1;
+		currentY = HEIGHT_BOARD - 1 + currentBlock.minY();
 	
-		//GAME OVER CONDITION
-		if(!tryMove(currentBlock, currentX, currentY - 1)) {
-			currentBlock.setBlock(TetrisShape.N);
+		if(!testMove(currentBlock, currentX, currentY - 1)) {
+			currentBlock.setBlocks(TetrisShapes.Nothing);
 			timer.stop();
 			gameStarted = false;
-			menu.setText("Game Over");
+			menu.setText("GAME OVER");
 		}
 	}
 	
 	private void moveDown() {
-		if (!tryMove(currentBlock, currentX, currentY -1)) {
-			pieceDropped();
+		if(!testMove(currentBlock, currentX, currentY - 1)) {
+			dropBlock();
 		}
 	}
 	
-	
 	@Override
-	public void actionPerformed(ActionEvent ae) {
-		if (doneFalling) {
+	public void actionPerformed(ActionEvent a) {
+		if(doneFalling) {
 			doneFalling = false;
 			newBlock();
 		}
@@ -120,7 +113,7 @@ public class Board extends JPanel implements ActionListener {
 		}
 	}
 	
-	private void drawSquare(Graphics g, int x, int y, TetrisShape shape) {
+	private void drawSquare(Graphics g, int x, int y, TetrisShapes shape) {
 		Color color = COLORS[shape.ordinal()];
 		g.setColor(color);
 		g.fillRect(x+1, y+1, squareWidth()-2, squareHeight()-2);
@@ -130,6 +123,7 @@ public class Board extends JPanel implements ActionListener {
 		g.setColor(color.darker());
 		g.drawLine(x + 1, y + squareHeight() - 1,x + squareWidth() -1,y + squareHeight() - 1);
 		g.drawLine(x + squareWidth() - 1, y + squareHeight() - 1,x + squareWidth()-1,y+1);
+		
 	}
 	
 	@Override
@@ -141,157 +135,119 @@ public class Board extends JPanel implements ActionListener {
 		
 		for(int i = 0; i < HEIGHT_BOARD; i++) {
 			for(int j = 0; j < WIDTH_BOARD; ++j) {
-				Blocks.TetrisShape shape = shapeAt(j,HEIGHT_BOARD - i - 1);
+				TetrisShapes shape = shapePos(j,HEIGHT_BOARD - i - 1);
 			
-			if(shape != Blocks.TetrisShape.N) {
+			if(shape != TetrisShapes.Nothing) {
 				drawSquare(g, j * squareWidth(), boardTop + i * squareHeight(), shape);
-				}
-			}
-		}
-	
-		if(currentBlock.getShape() != Blocks.TetrisShape.N) {
-			for(int i = 0; i<4; ++i) {
-				//If its not NoShape:
-				//Loop through the currentBlocks coords and paint
-				int x = currentX + currentBlock.getX(i);
-				int y = currentY - currentBlock.getY(i);
-				drawSquare(g, x * squareWidth(), boardTop + (HEIGHT_BOARD - y - 1)*squareHeight(),
-						currentBlock.getShape());
 			}
 		}
 	}
 	
-	public void start() {
-		if(gamePaused) {
-			//Check for pause
-			return;
+	if(currentBlock.getShape() != TetrisShapes.Nothing) {
+		for(int i = 0; i<4; ++i) {
+			int x = currentX + currentBlock.x(i);
+			int y = currentY + currentBlock.y(i);
+			drawSquare(g, x * squareWidth(), boardTop + (HEIGHT_BOARD - y - 1)*squareHeight(),
+					currentBlock.getShape());
 		}
-		//If not paused, run the start procedure
-		gameStarted = true; //Set status
-		doneFalling = false; //NOT done falling
-		linesCleared = 0; //Reset score
+	}
+	
+	}
+	public void start() {
+		if(gamePaused) return;
+		
+		gameStarted = true;
+		doneFalling = true;
+		clearedLines = 0;
 		clearBoard();
 		newBlock();
 		timer.start();
+		
 	}
 	
 	public void pause() {
-		if (!gameStarted) {
-			return;
-		}
+		if (gameStarted == false) return;
+		
+		gamePaused = !gamePaused; //Whatever it is, switch
+		
 		if (gamePaused) {
 			timer.stop();
 			menu.setText("Paused");
 		}
 		else {
 			timer.start();
-			menu.setText(String.valueOf(linesCleared));
+			menu.setText(String.valueOf(clearedLines));
 		}
 		
-		repaint(); //Essentially refreshing
+		repaint();
 	}
 	
-	private boolean tryMove(Blocks newB, int newX, int newY) {
-		//Returns a boolean, takes in a Block, and coords
-		for(int i = 0; i < 4; ++i) {
-			//Set coordinates relative to current getX/getY positions
-			int x = newX + newB.getX(i);
-			int y = newY - newB.getY(i);
-			
-			//Test if the new coords are valid
-			if ( x < 0 || x >= WIDTH_BOARD || y < 0 || y >= HEIGHT_BOARD) {
-				return false;
-			}
-			
-			if (shapeAt(x,y) != TetrisShape.N) {
-				return false;
-			}
-			
+	private boolean testMove(Shape newPiece, int x2, int y2) {
+		for(int i = 0; i<4; ++i) {
+			int x = x2 + newBlock.x(i);
+			int y = y2 + newBlock.y(i);
+		}
+		//now check if the move is possible
+		if(x < 0 || x >= WIDTH_BOARD || y < 0 || y >= HEIGHT_BOARD) {
+			return false;
+		}
+		//If a piece is there, can't move there
+		if(shapePos(x,y) != TetrisShapes.Nothing) {
+			return false;
 		}
 		
-		//Passed all tests, set current coords to new coords
-		currentBlock = newB;
-		currentX = newX;
-		currentY = newY;
-		repaint();
+		//Before the current block is generated, it's move has to be validated
+		currentBlock = newPiece;
+		currentX = x2;
+		currentY = y2;
 		return true;
 	}
 	
-	private void clearLine() {
-		int clearCheck = 0;
+	private void clearFullLine() {
+		int numFullLines = 0;
 		
-		//Checking if the line is full
-		for (int i = HEIGHT_BOARD -1; i >= 0; --i) {
-			//Assume its full, but test with loops
-			boolean lineFull = true;
-			//For each y,
-			for (int j = 0; j < WIDTH_BOARD; ++j) {
-				//For each x,
-				if (shapeAt(j,i) == TetrisShape.N) {
-					lineFull = false;
+		for (int i = HEIGHT_BOARD - 1; i >=0; --i) {
+			//assume full, continue testing
+			boolean fullLine = true;
+			
+			for(int j = 0; j < HEIGHT_BOARD; ++j) {
+				//If there's no shape for any of the coordinates, its not full
+				if(shapePos(j,i) == TetrisShapes.Nothing) {
+					fullLine = false;
 					break;
-					//If the shape isn't NOTHING, continue
-					//If there is a NOTHING, break
 				}
 			}
 			
-			if (lineFull) {
-				++clearCheck;
+			if (fullLine) {
+				numFullLines++;
 				
-				for (int k = i; k < HEIGHT_BOARD -1; ++k ) {
-					for (int j = 0; j < WIDTH_BOARD; ++j) {
-						board[k * WIDTH_BOARD + j] = shapeAt(j, k+1);
+				for (int k = i; k < HEIGHT_BOARD; ++k) {
+					for(int j = 0; j < WIDTH_BOARD; ++j) {
+						board[k*WIDTH_BOARD + j] = shapePos(j,k+1);
 					}
 				}
 			}
-			
-			if (clearCheck > 0) {
-				//If its greater than zero, the line is full
-				//Do this procedure for a full line...
-				linesCleared = linesCleared + clearCheck; //Update score
-				menu.setText(String.valueOf(linesCleared));
-				currentBlock.setBlock(TetrisShape.N); //Set the current block to No shape?
+			if (numFullLines > 0) {
+				clearedLines += numFullLines;
+				menu.setText(String.valueOf(clearedLines));
+				doneFalling = true;
+				currentBlock.setBlocks(TetrisShapes.NoShape);
 				repaint();
 			}
 		}
 	}
 	
 	private void dropDown() {
-		int newY = currentY;
+		int y2 = currentY;
 		
-		while (newY > 0) {
-			if(!tryMove(currentBlock, currentX, newY -1)) {
-				//If the test move at the current position fails...
+		while (y2 > 0) {
+			if(!testMove(currentBlock,currentX,currentY -1)) {
 				break;
 			}
-			--newY; //Decrease newY
+			--y2;
 		}
-		pieceDropped(); //call pieceDropped, which updates coords as a block falls
+		dropBlock();
 	}
-	//ADD ROTATIONS
+	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
