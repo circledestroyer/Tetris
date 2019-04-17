@@ -1,4 +1,4 @@
-package Tetris;
+package tetris;
 
 import java.awt.BorderLayout;
 
@@ -33,5 +33,5 @@ public class Tetris extends JFrame {
 		myTetris.setVisible(true);
 		myTetris.setResizable(false);
 	}
-	//MOVEMENT ADDED W/O CONTROL 4/17/19 12:28AM
+	//MOVEMENT ADDED W/ CONTROL 4/17/19 01:09PM
 }

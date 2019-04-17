@@ -1,16 +1,18 @@
-package Tetris;
+package tetris;
 
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.event.ActionEvent;
+import java.awt.event.*;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import Tetris.Blocks.TetrisShape;
+import tetris.Blocks.TetrisShape;
 
 public class Board extends JPanel implements ActionListener {
 
@@ -32,10 +34,10 @@ public class Board extends JPanel implements ActionListener {
 
 	private JLabel menu;
 
-	private Blocks currentBlock; //currentPiece > currentBlock
-	private static final Color[] COLORS = { new Color(0,0,0), new Color(204,102,102),
-			new Color(102,204,102), new Color(102,102,204), new Color(204,204,102),
-			new Color(204,102,204), new Color(102,204,204), new Color(218,170,0)};
+	private Blocks currentBlock; //currentPiece > currentBlock 
+	private static final Color[] COLORS = { new Color(0,0,0), new Color(25,45,146),
+			new Color(118,53,133), new Color(210,60,119), new Color(255,79,121),
+			new Color(255,153,127), new Color(255,66,0), new Color(127,229,255)};
 	private TetrisShape[] board; //Array of Tetris shapes called board
 
 	public Board(Tetris parent) {
@@ -47,6 +49,8 @@ public class Board extends JPanel implements ActionListener {
 		board = new TetrisShape[WIDTH_BOARD * HEIGHT_BOARD];
 		//Constructor! Sets the array to the dimensions of the board
 		clearBoard(); // clears all inside
+		
+		addKeyListener(new MyTetrisAdapter());
 	}
 
 	public int squareWidth() {
@@ -90,7 +94,7 @@ public class Board extends JPanel implements ActionListener {
 		currentBlock.setRandomShape();
 		currentX = WIDTH_BOARD /2 + 1;
 		//CurrentY depends on dimension of the new block
-		//Offsent differently depending on the shape
+		//Offset differently depending on the shape
 		currentY = HEIGHT_BOARD - 1 + currentBlock.minY();
 
 		//GAME OVER CONDITION
@@ -271,7 +275,7 @@ public class Board extends JPanel implements ActionListener {
 	class MyTetrisAdapter extends KeyAdapter{
 		@Override
 		public void keyPressed(KeyEvent ke) {
-			if(!gameStarted || currentBlock.getShape() == Blocks.TetrisShapes.N) {
+			if(!gameStarted || currentBlock.getShape() == Blocks.TetrisShape.N) {
 				return;
 			}
 			int keyCode = ke.getKeyCode();

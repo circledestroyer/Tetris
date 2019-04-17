@@ -1,5 +1,5 @@
 //Called Blocks, not Shapes
-package Tetris;
+package tetris;
 
 import java.util.Random;
 
