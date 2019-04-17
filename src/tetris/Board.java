@@ -1,4 +1,4 @@
-tryMovepackage Tetris;
+package Tetris;
 
 import java.awt.event.ActionListener;
 import java.awt.Color;
